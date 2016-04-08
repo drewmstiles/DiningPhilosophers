@@ -100,31 +100,34 @@ public class Philosopher extends Thread {
 		lock.lock();
 		try {
 			states[id] = THINKING;	
-			int hungriest = 0;
-			int[] order = new int[appetites.length];
+			int hungriest = (int)(Math.random() * appetites.length);
 			for (int i = 0; i < appetites.length; i ++) {
 				if (appetites[i] < appetites[hungriest]) {
 					hungriest = i;
-					for (int j = 0; j < order.length - 1; j++) {
-						order[j + 1] = order[j];
-						order[j] = hungriest;
-					}
+//					for (int j = 0; j < order.length - 1; j++) {
+//						order[j + 1] = order[j];
+//						order[j] = hungriest;
+//					}
 				}
 			}
 			
-			for (int i = 0; i < order.length; i++) {
-				System.out.printf("Philospher: %d\tAppetite: %d\n", order[i], appetites[order[i]]);
+//			System.out.println("\n\n\n");
+			System.out.printf("%d is hungriest\n", hungriest);
+			for (int i = 0; i < appetites.length; i++) {
+				System.out.printf("Philospher: %d\tAppetite: %d\n", i, appetites[i]);
 			}
 			
-			for (int i = 0; i < order.length; i++) {
-				if (canEat(order[i])) {
-					phil[order[i]].signal();
-					break;
+			System.out.println("\n\n\n");
+			
+//			for (int i = 0; i < order.length; i++) {
+				if (canEat(hungriest)) {
+					phil[hungriest].signal();
+//					break;
 				}
 				else {
 					// signal a philospher that can eat
 				}
-			}
+//			}
 		}
 		finally {
 			lock.unlock();
