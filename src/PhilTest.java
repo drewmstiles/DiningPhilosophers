@@ -4,7 +4,7 @@ import java.util.concurrent.locks.*;
 
 public class PhilTest {
 	private static int WAITING = 0, EATING = 1, THINKING = 2;
-	private static final int NUM_PHILS = 20;
+	private static final int NUM_PHILS = 10;
 	private static Lock lock = new ReentrantLock();
 	private static Condition phil[] = new Condition[NUM_PHILS];
 	private static int states[] = new int[NUM_PHILS];
@@ -24,6 +24,8 @@ public class PhilTest {
 	public static void main(String a[]) {
 		init();
 		Philosopher p[] = new Philosopher[NUM_PHILS];
+		
+		long start = System.currentTimeMillis();
 		for (int k = 0; k < p.length; k++) {
 			p[k] = new Philosopher(lock, phil, states, priority, NUM_PHILS, k, counter, appetites, averageWait, max);
 			p[k].start();
@@ -40,6 +42,10 @@ public class PhilTest {
 			}
 		}
 		
+		long stop = System.currentTimeMillis();
+		
+		
+		
 		int sum = 0;
 		for (int i = 0; i < max.length; i++) {
 			sum += max[i];
@@ -51,5 +57,7 @@ public class PhilTest {
 		for (int i = 0; i < averageWait.length; i++) {
 			System.out.printf("Philosopher: %d\tAverage Wait: %f\n",i, averageWait[i]);
 		}
+		
+		System.out.printf("\n\notal Time: %d\n\n", (stop - start));
 	}
 }

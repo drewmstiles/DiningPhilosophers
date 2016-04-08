@@ -14,7 +14,7 @@ public class Philosopher extends Thread {
 	private int[] appetites;
 	private int NUM_PHILS;
 	private int id;
-	private final int TURNS = 10;
+	private final int TURNS = 100;
 	private AtomicInteger counter;
 	private int lastAte = 0;
 	private ArrayList<Integer> waits;
@@ -46,7 +46,7 @@ public class Philosopher extends Thread {
 				sleep(20);
 			} catch (Exception ex) {
 			}
-			putSticksFairly(id);
+			putSticks(id);
 		}
 
 //		System.out.println(id + " wait times: " + waits + " size: "
