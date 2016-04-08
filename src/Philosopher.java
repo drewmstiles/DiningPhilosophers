@@ -1,6 +1,6 @@
 import java.util.ArrayList;
-
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.Iterator;
 import java.util.Queue;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -14,12 +14,14 @@ public class Philosopher extends Thread {
 	private int[] appetites;
 	private int NUM_PHILS;
 	private int id;
-	private final int TURNS = 20;
+	private final int TURNS = 10;
 	private AtomicInteger counter;
 	private int lastAte = 0;
 	private ArrayList<Integer> waits;
-
-	public Philosopher(Lock l, Condition p[], int st[], int priority[], int num, int ID, AtomicInteger counter, int[] appetites) {
+	private double[] avgs;
+	private int[] max;
+	public Philosopher(Lock l, Condition p[], int st[], int priority[], int num, int ID, AtomicInteger counter, 
+				int[] appetites, double[] averageWait, int[] max) {
 		lastAte = 0;
 		lock = l;
 		phil = p;
@@ -29,6 +31,8 @@ public class Philosopher extends Thread {
 		this.counter = counter;
 		this.appetites = appetites;
 		waits = new ArrayList<Integer>();
+		avgs = averageWait;
+		this.max = max;
 	}
 
 	public void run() {
@@ -42,11 +46,21 @@ public class Philosopher extends Thread {
 				sleep(20);
 			} catch (Exception ex) {
 			}
-			putSticks(id);
+			putSticksFairly(id);
 		}
 
-				System.out.println(id + " wait times: " + waits + " size: "
-				+ waits.size());
+//		System.out.println(id + " wait times: " + waits + " size: "
+//				+ waits.size());
+		
+		int sum  = 0;
+		for (int i = 0; i < waits.size(); i++) {
+			sum += waits.get(i);
+		}
+		
+		double average = (double)sum / waits.size();
+		
+		max[id] = Collections.max(waits);
+		avgs[id] = average;
 	}
 
 	public void takeSticks(int id) {
@@ -76,27 +90,34 @@ public class Philosopher extends Thread {
 	}
 		
 	private void eat() {
-//		System.out.println("id : " + id + " is eating");
+		System.out.println("id : " + id + " is eating");
 		int count = counter.incrementAndGet();
 		waits.add(count - lastAte);
 		lastAte = count;
 		appetites[id] = lastAte;
 		states[id] = EATING;	
-	}
-		
-//		if (states[leftof(id)] == WAITING
-//					&& states[leftof(leftof(id))] != EATING) {
-//				phil[leftof(id)].signal();
-//				states[leftof(id)] = EATING;
-//			}
-//			if (states[rightof(id)] == WAITING
-//					&& states[rightof(rightof(id))] != EATING) {
-//				phil[rightof(id)].signal();
-//				states[rightof(id)] = EATING;
-//			}
-			
-		
+	}	
+	
 	public void putSticks(int id) {
+		lock.lock();
+		try {
+			states[id] = THINKING;
+			
+			if (states[leftof(id)] == WAITING
+					&& states[leftof(leftof(id))] != EATING) {
+				phil[leftof(id)].signal();
+			}
+			if (states[rightof(id)] == WAITING
+					&& states[rightof(rightof(id))] != EATING) {
+				phil[rightof(id)].signal();
+			}
+		} finally {
+			lock.unlock();
+		}
+	}
+	
+		
+	public void putSticksFairly(int id) {
 		lock.lock();
 		try {
 			states[id] = THINKING;	
@@ -104,30 +125,31 @@ public class Philosopher extends Thread {
 			for (int i = 0; i < appetites.length; i ++) {
 				if (appetites[i] < appetites[hungriest]) {
 					hungriest = i;
-//					for (int j = 0; j < order.length - 1; j++) {
-//						order[j + 1] = order[j];
-//						order[j] = hungriest;
-//					}
 				}
 			}
 			
-//			System.out.println("\n\n\n");
-			System.out.printf("%d is hungriest\n", hungriest);
-			for (int i = 0; i < appetites.length; i++) {
-				System.out.printf("Philospher: %d\tAppetite: %d\n", i, appetites[i]);
-			}
-			
-			System.out.println("\n\n\n");
-			
-//			for (int i = 0; i < order.length; i++) {
-				if (canEat(hungriest)) {
-					phil[hungriest].signal();
-//					break;
-				}
-				else {
-					// signal a philospher that can eat
-				}
+//			System.out.println("\n\n");
+//			System.out.printf("Current iteration: %d\n", counter.get());
+//			System.out.printf("%d is hungriest\n", hungriest);
+//			for (int i = 0; i < appetites.length; i++) {
+//				System.out.printf("Philospher: %d\tAppetite: %d\n", i, appetites[i]);
 //			}
+//			System.out.println("\n\n");
+//			
+			if (canEat(hungriest)) {
+				phil[hungriest].signal();
+			}
+			else {
+				// do not alter state at risk of further starving hungriest
+				if (states[leftof(id)] == WAITING
+							&& states[leftof(leftof(id))] != EATING) {
+						phil[leftof(id)].signal();
+					}
+					if (states[rightof(id)] == WAITING
+							&& states[rightof(rightof(id))] != EATING) {
+						phil[rightof(id)].signal();
+					}
+			}
 		}
 		finally {
 			lock.unlock();
