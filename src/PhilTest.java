@@ -1,3 +1,4 @@
+
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.locks.*;
 
@@ -9,6 +10,7 @@ public class PhilTest {
 	private static int states[] = new int[NUM_PHILS];
 	private static int priority[] = new int[NUM_PHILS];
 	public static AtomicInteger counter = new AtomicInteger(0);
+	private static int[] appetites = new int[NUM_PHILS];
 
 	public static void init() {
 		for (int k = 0; k < NUM_PHILS; k++) {
@@ -21,7 +23,7 @@ public class PhilTest {
 		init();
 		Philosopher p[] = new Philosopher[NUM_PHILS];
 		for (int k = 0; k < p.length; k++) {
-			p[k] = new Philosopher(lock, phil, states, priority, NUM_PHILS, k, counter);
+			p[k] = new Philosopher(lock, phil, states, priority, NUM_PHILS, k, counter, appetites);
 			p[k].start();
 		}
 	}

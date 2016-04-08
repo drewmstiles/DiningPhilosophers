@@ -1,5 +1,8 @@
 import java.util.ArrayList;
+
 import java.util.Arrays;
+import java.util.Iterator;
+import java.util.Queue;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.locks.*;
 
@@ -8,31 +11,24 @@ public class Philosopher extends Thread {
 	private Lock lock;
 	private Condition phil[];
 	private int states[];
-	private int priority[];
+	private int[] appetites;
 	private int NUM_PHILS;
 	private int id;
 	private final int TURNS = 20;
 	private AtomicInteger counter;
 	private int lastAte = 0;
-	private long lastTime = 0;
 	private ArrayList<Integer> waits;
-	private ArrayList<Long> times;
 
-	public Philosopher(Lock l, Condition p[], int st[], int priority[], int num, int ID,
-			AtomicInteger counter) {
-		this.priority = priority;
+	public Philosopher(Lock l, Condition p[], int st[], int priority[], int num, int ID, AtomicInteger counter, int[] appetites) {
+		lastAte = 0;
 		lock = l;
 		phil = p;
 		states = st;
 		NUM_PHILS = num;
 		id = ID;
 		this.counter = counter;
+		this.appetites = appetites;
 		waits = new ArrayList<Integer>();
-		times = new ArrayList<Long>();
-	}
-	
-	public int getLastAte() {
-		return lastAte;
 	}
 
 	public void run() {
@@ -48,64 +44,47 @@ public class Philosopher extends Thread {
 			}
 			putSticks(id);
 		}
-		System.out.println(id + " wait times: " + waits + " size: "
+
+				System.out.println(id + " wait times: " + waits + " size: "
 				+ waits.size());
 	}
 
 	public void takeSticks(int id) {
-//		while (true) {
-			lock.lock();
-			try {
-				if (states[leftof(id)] != EATING
-						&& states[rightof(id)] != EATING) {
-					states[id] = EATING;
-					System.out.println(id + " is eating");
-					waits.add(counter.get() - priority[id]);
-					priority[id] = counter.incrementAndGet();
-//					times.add(System.nanoTime() - lastTime);
-//					lastTime = System.nanoTime();
-
-//					break;
-				} else {
-					states[id] = WAITING;
-					phil[id].await();
-					if(states[id] == EATING) {
-						waits.add(counter.get() - priority[id]);
-						priority[id] = counter.incrementAndGet();
-					}
-				}
-			} catch (InterruptedException e) {
-				System.out.println(id + "interruped");
-				System.exit(-1);
-			} finally {
-				lock.unlock();
+		lock.lock();
+		states[id] = WAITING;
+		try {
+			if (!canEat(this.id)) {
+				phil[id].await();
+			} 
+			else {
+				// go eat
 			}
-//		}
+			
+			eat();
+			
+		} catch (InterruptedException e) {
+			System.exit(-1);
+		} finally {
+			lock.unlock();
+		}
 	}
 
-	// public void output(String s) {
-	// lock.lock();
-	// for (int k = 0; k < states.length; k++)
-	// System.out.print(states[k] + ",");
-	// lock.unlock();
-	// System.out.println();
-	// System.out.println();
-	// }
-
-	public void putSticks(int id) {
-		lock.lock();
-		try {
-			states[id] = THINKING;
-			int min = priority[0], mindex;
-			for(int i = 0; i < priority.length; i++) {
-				if(priority[i] < min) {
-					min = priority[i];
-					mindex = i;
-				}
-			}
-			
-			
-//			if (states[leftof(id)] == WAITING
+	public boolean canEat(int id) {
+		return (states[id] == WAITING
+				&& states[leftof(id)] != EATING
+				&& states[rightof(id)] != EATING);
+	}
+		
+	private void eat() {
+//		System.out.println("id : " + id + " is eating");
+		int count = counter.incrementAndGet();
+		waits.add(count - lastAte);
+		lastAte = count;
+		appetites[id] = lastAte;
+		states[id] = EATING;	
+	}
+		
+//		if (states[leftof(id)] == WAITING
 //					&& states[leftof(leftof(id))] != EATING) {
 //				phil[leftof(id)].signal();
 //				states[leftof(id)] = EATING;
@@ -115,7 +94,39 @@ public class Philosopher extends Thread {
 //				phil[rightof(id)].signal();
 //				states[rightof(id)] = EATING;
 //			}
-		} finally {
+			
+		
+	public void putSticks(int id) {
+		lock.lock();
+		try {
+			states[id] = THINKING;	
+			int hungriest = 0;
+			int[] order = new int[appetites.length];
+			for (int i = 0; i < appetites.length; i ++) {
+				if (appetites[i] < appetites[hungriest]) {
+					hungriest = i;
+					for (int j = 0; j < order.length - 1; j++) {
+						order[j + 1] = order[j];
+						order[j] = hungriest;
+					}
+				}
+			}
+			
+			for (int i = 0; i < order.length; i++) {
+				System.out.printf("Philospher: %d\tAppetite: %d\n", order[i], appetites[order[i]]);
+			}
+			
+			for (int i = 0; i < order.length; i++) {
+				if (canEat(order[i])) {
+					phil[order[i]].signal();
+					break;
+				}
+				else {
+					// signal a philospher that can eat
+				}
+			}
+		}
+		finally {
 			lock.unlock();
 		}
 	}
