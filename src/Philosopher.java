@@ -3,6 +3,7 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.Iterator;
 import java.util.Queue;
+import java.util.TreeMap;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.locks.*;
 
@@ -14,7 +15,7 @@ public class Philosopher extends Thread {
 	private int[] appetites;
 	private int NUM_PHILS;
 	private int id;
-	private final int TURNS = 100;
+	private final int TURNS = 20;
 	private AtomicInteger counter;
 	private int lastAte = 0;
 	private ArrayList<Integer> waits;
@@ -46,7 +47,7 @@ public class Philosopher extends Thread {
 				sleep(20);
 			} catch (Exception ex) {
 			}
-			putSticks(id);
+			putSticksFairly(id);
 		}
 
 //		System.out.println(id + " wait times: " + waits + " size: "
@@ -120,13 +121,53 @@ public class Philosopher extends Thread {
 	public void putSticksFairly(int id) {
 		lock.lock();
 		try {
-			states[id] = THINKING;	
-			int hungriest = (int)(Math.random() * appetites.length);
-			for (int i = 0; i < appetites.length; i ++) {
-				if (appetites[i] < appetites[hungriest]) {
-					hungriest = i;
+			states[id] = THINKING;
+			
+			TreeMap<Integer, Integer> pool = new TreeMap<Integer, Integer>();
+			for (int pid = 0; pid < phil.length; pid++) {
+				pool.put(appetites[pid], pid);
+			}
+			
+			int[] order = new int[phil.length];
+			Iterator<Integer> it = pool.keySet().iterator();
+			int idx = 0;
+			while (it.hasNext()) {
+				Integer app = it.next();
+				Integer pid = pool.get(app);
+				order[idx++] = pid;
+			}
+
+			for (int i = 0; i < order.length; i++) {
+				if (canEat(order[i])) {
+					phil[order[i]].signal();
+				}
+				else {
+					// do nothing
 				}
 			}
+			
+//			Iterator<Integer> it = pool.keySet().iterator();
+//			while (it.hasNext()) {
+//				Integer app = it.next();
+//				Integer pid = pool.get(app); 
+//				System.out.printf("Philospher: %d\t Appetite: %d\n", pid, app);
+//			}
+			
+	
+			
+			
+			
+//			int hungriest = (int)(Math.random() * appetites.length);
+//			for (int i = 0; i < appetites.length; i ++) {
+//				if (appetites[i] < appetites[hungriest]) {
+//					hungriest = i;
+//				
+//					for (int j = 0; j < order.length; j++) {
+//						order[j + 1] = order[j];
+//						order[j] = hungriest;
+//					}
+//				}
+//			}
 			
 //			System.out.println("\n\n");
 //			System.out.printf("Current iteration: %d\n", counter.get());
@@ -136,20 +177,20 @@ public class Philosopher extends Thread {
 //			}
 //			System.out.println("\n\n");
 //			
-			if (canEat(hungriest)) {
-				phil[hungriest].signal();
-			}
-			else {
-				// do not alter state at risk of further starving hungriest
-				if (states[leftof(id)] == WAITING
-							&& states[leftof(leftof(id))] != EATING) {
-						phil[leftof(id)].signal();
-					}
-					if (states[rightof(id)] == WAITING
-							&& states[rightof(rightof(id))] != EATING) {
-						phil[rightof(id)].signal();
-					}
-			}
+//			if (canEat(hungriest)) {
+//				phil[hungriest].signal();
+//			}
+//			else {
+//				// do not alter state at risk of further starving hungriest
+//				if (states[leftof(id)] == WAITING
+//							&& states[leftof(leftof(id))] != EATING) {
+//						phil[leftof(id)].signal();
+//					}
+//					if (states[rightof(id)] == WAITING
+//							&& states[rightof(rightof(id))] != EATING) {
+//						phil[rightof(id)].signal();
+//					}
+//			}
 		}
 		finally {
 			lock.unlock();
