@@ -15,7 +15,7 @@ public class Philosopher extends Thread {
 	private int[] appetites;
 	private int NUM_PHILS;
 	private int id;
-	private final int TURNS = 20;
+	private final int TURNS = 100;
 	private AtomicInteger counter;
 	private int lastAte = 0;
 	private ArrayList<Integer> waits;
@@ -39,19 +39,18 @@ public class Philosopher extends Thread {
 	public void run() {
 		for (int k = 0; k < TURNS; k++) {
 			try {
-				sleep(100);
+				Thread.sleep(100);
 			} catch (Exception ex) { /* lazy */
 			}
-			takeSticks(id);
+			takeSticksFairly(id);
 			try {
-				sleep(20);
+				Thread.sleep(20);
 			} catch (Exception ex) {
 			}
+			
 			putSticksFairly(id);
 		}
-
-//		System.out.println(id + " wait times: " + waits + " size: "
-//				+ waits.size());
+		
 		
 		int sum  = 0;
 		for (int i = 0; i < waits.size(); i++) {
@@ -63,7 +62,9 @@ public class Philosopher extends Thread {
 		max[id] = Collections.max(waits);
 		avgs[id] = average;
 	}
-
+	
+	
+	
 	public void takeSticks(int id) {
 		lock.lock();
 		states[id] = WAITING;
@@ -84,6 +85,35 @@ public class Philosopher extends Thread {
 		}
 	}
 
+	public void takeSticksFairly(int id) {
+		
+		while (true) {
+			lock.lock();
+			states[id] = WAITING;	
+			int app = appetites[this.id];
+			try {
+				if ((appetites[rightof(this.id)] >= app) && (appetites[leftof(this.id)] >= app)) {
+					if (canEat(this.id)) {
+						// go eat
+					}
+					else {
+						phil[this.id].await();
+					}
+					
+					eat();
+					break; // from while
+				} 
+				else {
+					continue; // trying to eat
+				}
+			} catch (InterruptedException e) {
+				System.exit(-1);
+			} finally {
+				lock.unlock();
+			}
+		}
+	}
+
 	public boolean canEat(int id) {
 		return (states[id] == WAITING
 				&& states[leftof(id)] != EATING
@@ -91,7 +121,7 @@ public class Philosopher extends Thread {
 	}
 		
 	private void eat() {
-		System.out.println("id : " + id + " is eating");
+		System.out.println(id + " is eating");
 		int count = counter.incrementAndGet();
 		waits.add(count - lastAte);
 		lastAte = count;
@@ -127,70 +157,23 @@ public class Philosopher extends Thread {
 			for (int pid = 0; pid < phil.length; pid++) {
 				pool.put(appetites[pid], pid);
 			}
-			
+
+			int i = 0;
 			int[] order = new int[phil.length];
 			Iterator<Integer> it = pool.keySet().iterator();
-			int idx = 0;
 			while (it.hasNext()) {
 				Integer app = it.next();
 				Integer pid = pool.get(app);
-				order[idx++] = pid;
+				order[i++] = pid;
 			}
 
-			for (int i = 0; i < order.length; i++) {
-				if (canEat(order[i])) {
-					phil[order[i]].signal();
-				}
-				else {
-					// do nothing
-				}
+			
+			if (canEat(order[0])) {
+				phil[order[0]].signal();
 			}
-			
-//			Iterator<Integer> it = pool.keySet().iterator();
-//			while (it.hasNext()) {
-//				Integer app = it.next();
-//				Integer pid = pool.get(app); 
-//				System.out.printf("Philospher: %d\t Appetite: %d\n", pid, app);
-//			}
-			
-	
-			
-			
-			
-//			int hungriest = (int)(Math.random() * appetites.length);
-//			for (int i = 0; i < appetites.length; i ++) {
-//				if (appetites[i] < appetites[hungriest]) {
-//					hungriest = i;
-//				
-//					for (int j = 0; j < order.length; j++) {
-//						order[j + 1] = order[j];
-//						order[j] = hungriest;
-//					}
-//				}
-//			}
-			
-//			System.out.println("\n\n");
-//			System.out.printf("Current iteration: %d\n", counter.get());
-//			System.out.printf("%d is hungriest\n", hungriest);
-//			for (int i = 0; i < appetites.length; i++) {
-//				System.out.printf("Philospher: %d\tAppetite: %d\n", i, appetites[i]);
-//			}
-//			System.out.println("\n\n");
-//			
-//			if (canEat(hungriest)) {
-//				phil[hungriest].signal();
-//			}
-//			else {
-//				// do not alter state at risk of further starving hungriest
-//				if (states[leftof(id)] == WAITING
-//							&& states[leftof(leftof(id))] != EATING) {
-//						phil[leftof(id)].signal();
-//					}
-//					if (states[rightof(id)] == WAITING
-//							&& states[rightof(rightof(id))] != EATING) {
-//						phil[rightof(id)].signal();
-//					}
-//			}
+			else {
+				// do nothing
+			}
 		}
 		finally {
 			lock.unlock();
