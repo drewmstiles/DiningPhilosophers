@@ -15,7 +15,7 @@ public class Philosopher extends Thread {
 	private int[] appetites;
 	private int NUM_PHILS;
 	private int id;
-	private final int TURNS = 100;
+	private final int TURNS = 20;
 	private AtomicInteger counter;
 	private int lastAte = 0;
 	private ArrayList<Integer> waits;
@@ -23,7 +23,6 @@ public class Philosopher extends Thread {
 	private int[] max;
 	public Philosopher(Lock l, Condition p[], int st[], int priority[], int num, int ID, AtomicInteger counter, 
 				int[] appetites, double[] averageWait, int[] max) {
-		lastAte = 0;
 		lock = l;
 		phil = p;
 		states = st;
@@ -31,6 +30,8 @@ public class Philosopher extends Thread {
 		id = ID;
 		this.counter = counter;
 		this.appetites = appetites;
+		lastAte = counter.getAndIncrement();
+		appetites[id] = lastAte; 		//  to accurately reflect wait times
 		waits = new ArrayList<Integer>();
 		avgs = averageWait;
 		this.max = max;
@@ -58,6 +59,8 @@ public class Philosopher extends Thread {
 		}
 		
 		double average = (double)sum / waits.size();
+		
+		System.out.println("Phil: " + this.id + " waits: " + waits);
 		
 		max[id] = Collections.max(waits);
 		avgs[id] = average;
@@ -168,11 +171,13 @@ public class Philosopher extends Thread {
 			}
 
 			
-			if (canEat(order[0])) {
-				phil[order[0]].signal();
-			}
-			else {
-				// do nothing
+			for (int pid = 0; pid < phil.length; pid++) {
+				if (canEat(order[pid])) {
+					phil[order[pid]].signal();
+				}
+				else {
+					// do nothing
+				}
 			}
 		}
 		finally {

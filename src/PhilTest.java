@@ -4,7 +4,7 @@ import java.util.concurrent.locks.*;
 
 public class PhilTest {
 	private static int WAITING = 0, EATING = 1, THINKING = 2;
-	private static final int NUM_PHILS = 10;
+	private static final int NUM_PHILS = 5;
 	private static Lock lock = new ReentrantLock();
 	private static Condition phil[] = new Condition[NUM_PHILS];
 	private static int states[] = new int[NUM_PHILS];
