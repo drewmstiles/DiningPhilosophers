@@ -49,7 +49,7 @@ public class Philosopher extends Thread {
 			} catch (Exception ex) {
 			}
 			
-			putSticksFairly(id);
+			putSticks(id);
 		}
 		
 		
@@ -91,11 +91,11 @@ public class Philosopher extends Thread {
 	public void takeSticksFairly(int id) {
 		
 		while (true) {
-			lock.lock();
 			states[id] = WAITING;	
 			int app = appetites[this.id];
-			try {
 				if ((appetites[rightof(this.id)] >= app) && (appetites[leftof(this.id)] >= app)) {
+					lock.lock();
+					try {
 					if (canEat(this.id)) {
 						// go eat
 					}
@@ -105,15 +105,15 @@ public class Philosopher extends Thread {
 					
 					eat();
 					break; // from while
+					} catch (InterruptedException e) {
+						System.exit(-1);
+					} finally {
+						lock.unlock();
+					}
 				} 
 				else {
 					continue; // trying to eat
 				}
-			} catch (InterruptedException e) {
-				System.exit(-1);
-			} finally {
-				lock.unlock();
-			}
 		}
 	}
 

@@ -4,7 +4,7 @@ import java.util.concurrent.locks.*;
 
 public class PhilTest {
 	private static int WAITING = 0, EATING = 1, THINKING = 2;
-	private static final int NUM_PHILS = 5;
+	private static final int NUM_PHILS = 100;
 	private static Lock lock = new ReentrantLock();
 	private static Condition phil[] = new Condition[NUM_PHILS];
 	private static int states[] = new int[NUM_PHILS];
@@ -51,7 +51,7 @@ public class PhilTest {
 			System.out.println("id: " + i + "\tavg:" + averageWait[i] + "\tmax: " + max[i]);
 			sum += max[i];
 		}
-		
+		System.out.println("time: " + (System.currentTimeMillis() - start));
 		System.out.println("Max Average = " + ((double) sum / max.length));
 		
 		
