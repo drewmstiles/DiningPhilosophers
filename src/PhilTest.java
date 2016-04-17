@@ -14,12 +14,14 @@ public class PhilTest {
 	public static double[] averageWait = new double[NUM_PHILS];
 	public static int[] max = new int[NUM_PHILS];
 	
+	
 	public static void init() {
 		for (int k = 0; k < NUM_PHILS; k++) {
 			phil[k] = lock.newCondition();
 			states[k] = THINKING;
 		}
 	}
+	
 
 	public static void main(String a[]) {
 		init();
@@ -32,28 +34,27 @@ public class PhilTest {
 		}
 		
 		for (Thread t : p) {
-			try
-			{
+			try {
 				t.join();
-			} catch (InterruptedException e)
-			{
-				// TODO Auto-generated catch block
-				e.printStackTrace();
+			} 
+			catch (InterruptedException ex) {
+				ex.printStackTrace();
 			}
 		}
 		
-		long stop = System.currentTimeMillis();
-		
-		
-		
-		int sum = 0;
-		for (int i = 0; i < max.length; i++) {
-			System.out.println("id: " + i + "\tavg:" + averageWait[i] + "\tmax: " + max[i]);
-			sum += max[i];
-		}
-		System.out.println("time: " + (System.currentTimeMillis() - start));
-		System.out.println("Max Average = " + ((double) sum / max.length));
-		
-		
+		long duration = (System.currentTimeMillis() - start);
+		double avg = getAverageWaitTime();
+		System.out.printf("%f\t%d", avg, duration );
 	}
-}
+
+	
+	private static double getAverageWaitTime() {
+		double avgTotal = 0.0;
+		for (int i = 0; i < phil.length; i++) {
+			avgTotal += max[i];
+		}
+		return avgTotal / phil.length;
+	}
+	
+	
+} // end class PhilTest

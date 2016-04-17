@@ -60,8 +60,6 @@ public class Philosopher extends Thread {
 		
 		double average = (double)sum / waits.size();
 		
-		System.out.println("Phil: " + this.id + " waits: " + waits);
-		
 		max[id] = Collections.max(waits);
 		avgs[id] = average;
 	}
@@ -124,7 +122,7 @@ public class Philosopher extends Thread {
 	}
 		
 	private void eat() {
-		System.out.println(id + " is eating");
+//		System.out.println(id + " is eating");
 		int count = counter.incrementAndGet();
 		waits.add(count - lastAte);
 		lastAte = count;
