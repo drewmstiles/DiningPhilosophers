@@ -4,18 +4,27 @@ import java.util.concurrent.locks.*;
 
 public class PhilTest {
 	private static int WAITING = 0, EATING = 1, THINKING = 2;
-	private static final int NUM_PHILS = 100;
+	private static int NUM_PHILS = -1;
 	private static Lock lock = new ReentrantLock();
-	private static Condition phil[] = new Condition[NUM_PHILS];
-	private static int states[] = new int[NUM_PHILS];
-	private static int priority[] = new int[NUM_PHILS];
+	private static Condition[] phil;
+	private static int[] states;
+	private static int[] priority;
 	public static AtomicInteger counter = new AtomicInteger(0);
-	private static int[] appetites = new int[NUM_PHILS];
-	public static double[] averageWait = new double[NUM_PHILS];
-	public static int[] max = new int[NUM_PHILS];
+	private static int[] appetites;
+	public static double[] averageWait;
+	public static int[] max;
 	
 	
-	public static void init() {
+	public static void init(int num) {
+		
+		NUM_PHILS = num;
+		phil = new Condition[NUM_PHILS];
+		states = new int[NUM_PHILS];
+		priority = new int[NUM_PHILS];
+		appetites = new int[NUM_PHILS];
+		averageWait = new double[NUM_PHILS];
+		 max = new int[NUM_PHILS];
+		
 		for (int k = 0; k < NUM_PHILS; k++) {
 			phil[k] = lock.newCondition();
 			states[k] = THINKING;
@@ -24,7 +33,9 @@ public class PhilTest {
 	
 
 	public static void main(String a[]) {
-		init();
+		
+		init(Integer.parseInt(a[0]));
+		
 		Philosopher p[] = new Philosopher[NUM_PHILS];
 		
 		long start = System.currentTimeMillis();
