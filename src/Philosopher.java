@@ -30,7 +30,7 @@ public class Philosopher extends Thread {
 		id = ID;
 		this.counter = counter;
 		this.appetites = appetites;
-		lastAte = counter.getAndIncrement();
+		lastAte = counter.incrementAndGet();
 		appetites[id] = lastAte; 		//  to accurately reflect wait times
 		waits = new ArrayList<Integer>();
 		avgs = averageWait;
@@ -43,7 +43,7 @@ public class Philosopher extends Thread {
 				Thread.sleep(100);
 			} catch (Exception ex) { /* lazy */
 			}
-			takeSticksFairly(id);
+			takeSticks(id);
 			try {
 				Thread.sleep(20);
 			} catch (Exception ex) {
