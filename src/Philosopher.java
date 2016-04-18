@@ -69,16 +69,17 @@ public class Philosopher extends Thread {
 
 	public void takeSticksFairly(int id) {
 		while (true) {
-			states[id] = WAITING;	
-			int app = appetites[this.id];
-			if ((appetites[rightof(this.id)] >= app) && (appetites[leftof(this.id)] >= app)) {
+			states[id] = WAITING;
+			boolean hungrierThanRight = (appetites[rightof(this.id)] >= appetites[this.id]);
+			boolean hungrierThanLeft = (appetites[leftof(this.id)] >= appetites[this.id]);
+			if (hungrierThanLeft && hungrierThanRight) {
 				lock.lock();
 				try {
 					if (canEat(this.id)) {
 						// go eat
 					}
 					else {
-						phil[this.id].await();
+						phil[this.id].await(); // oppurtunity to eat
 					}
 					
 					eat();
@@ -159,6 +160,7 @@ public class Philosopher extends Thread {
 	private int lastAte;
 	private ArrayList<Integer> waits;
 	private double[] max;
-}
+
+} // end class Philosopher
 
 
