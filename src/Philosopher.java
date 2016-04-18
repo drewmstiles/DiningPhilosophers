@@ -33,7 +33,7 @@ public class Philosopher extends Thread {
 			try { Thread.sleep(100); } 
 			catch (Exception ex) {}
 			
-			takeSticksFairly(id);
+			takeSticks(id);
 			
 			try { Thread.sleep(20); } 
 			catch (Exception ex) {}

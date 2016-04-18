@@ -1,4 +1,5 @@
 
+import java.util.Arrays;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.locks.*;
 
@@ -7,6 +8,26 @@ public class PhilTest {
 	public static int WAITING = 0, EATING = 1, THINKING = 2;
 	public static final int NUM_PHILS = 5;
 	
+	
+	public static void main(String a[]) {
+		
+		init();
+		
+		long start = System.currentTimeMillis();
+		
+		execute();
+		
+		long end = System.currentTimeMillis();
+		
+		// TODO
+		for (int i = 0; i < max.length; i++) {
+			System.out.print(max[i] + ",");
+		}
+		
+		System.out.printf("\nMax Wait (Avg): %.2f turns\nRuntime: %d ms", getAverage(max), (end - start));
+	}
+
+
 	public static void init() {
 		
 		// construct private data structures
@@ -20,20 +41,6 @@ public class PhilTest {
 			phil[k] = lock.newCondition();
 			states[k] = THINKING;
 		}
-	}
-	
-
-	public static void main(String a[]) {
-		
-		init();
-		
-		long start = System.currentTimeMillis();
-		
-		execute();
-		
-		long end = System.currentTimeMillis();
-		
-		System.out.printf("\nMax Wait (Avg): %.2f turns\nRuntime: %d ms", getAverage(max), (end - start));
 	}
 
 	
